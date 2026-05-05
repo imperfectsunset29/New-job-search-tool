@@ -235,6 +235,18 @@ export default function Home() {
 
           {tab === 'cover-letter' && (
             <div className="cover-letter-tab">
+              <div className="guidelines-field">
+                <label className="guidelines-label">Guidelines</label>
+                <p className="guidelines-hint">Tell Claude what to focus on, what to avoid, or anything specific about your story.</p>
+                <textarea
+                  className="guidelines-input"
+                  placeholder="e.g. Lead with my experience managing cross-functional teams. Don't mention the agency work. Keep it to 3 short paragraphs. Reference that I transitioned from engineering into design."
+                  value={coverLetterNotes}
+                  onChange={e => setCoverLetterNotes(e.target.value)}
+                  rows={5}
+                  disabled={coverLetterLoading}
+                />
+              </div>
               <div className="tone-selector">
                 {['professional', 'conversational', 'enthusiastic'].map(t => (
                   <button
@@ -246,17 +258,6 @@ export default function Home() {
                     {t.charAt(0).toUpperCase() + t.slice(1)}
                   </button>
                 ))}
-              </div>
-              <div className="notes-field">
-                <label className="notes-label">Quick ideas (optional)</label>
-                <textarea
-                  className="notes-input"
-                  placeholder="e.g. mention my nonprofit work, emphasize remote experience, keep it under 3 paragraphs..."
-                  value={coverLetterNotes}
-                  onChange={e => setCoverLetterNotes(e.target.value)}
-                  rows={3}
-                  disabled={coverLetterLoading}
-                />
               </div>
               <button className="btn-primary" onClick={generateCoverLetter} disabled={coverLetterLoading}>
                 {coverLetterLoading ? 'Generating...' : coverLetter ? 'Regenerate' : 'Generate Cover Letter'}

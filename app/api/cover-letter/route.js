@@ -32,7 +32,7 @@ Structure:
 - First paragraph: why this role and company excite them (infer from the job description)
 - Middle paragraph(s): 2-3 strongest matching experiences from the resume
 - Closing: confident call to action
-${notes.trim() ? `\nAdditional guidance from the candidate:\n${notes.trim()}` : ''}
+${notes.trim() ? `\nGuidelines from the candidate — follow these closely:\n${notes.trim()}` : ''}
 
 Job Description:
 ${jobDescription}
