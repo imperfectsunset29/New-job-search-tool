@@ -34,6 +34,9 @@ export default function Home() {
   const [blocks, setBlocks] = useState([]);
   const [done, setDone] = useState(false);
   const [tab, setTab] = useState('changes');
+  const [coverLetter, setCoverLetter] = useState('');
+  const [coverLetterLoading, setCoverLetterLoading] = useState(false);
+  const [coverLetterTone, setCoverLetterTone] = useState('professional');
 
   useEffect(() => {
     const saved = localStorage.getItem('notionPageUrl') || 'https://www.notion.so/iamvalentina/Valentina-Calvache-Senior-Content-Designer-3574ee47dcf580e1a5d8d14b80c04626';
@@ -46,6 +49,7 @@ export default function Home() {
     setSuggestions([]);
     setDone(false);
     setTab('changes');
+    setCoverLetter('');
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
@@ -63,6 +67,35 @@ export default function Home() {
       setError(e.message);
     }
     setLoading(false);
+  }
+
+  async function generateCoverLetter() {
+    setCoverLetterLoading(true);
+    setError('');
+    const res = await fetch('/api/cover-letter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resumeText, jobDescription: jobDesc, tone: coverLetterTone }),
+    });
+    const data = await res.json();
+    if (res.ok) setCoverLetter(data.coverLetter);
+    else setError(data.error);
+    setCoverLetterLoading(false);
+  }
+
+  async function downloadCoverLetter() {
+    const res = await fetch('/api/download-cover-letter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ coverLetter }),
+    });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cover_letter.docx';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function applyToNotion() {
@@ -135,6 +168,9 @@ export default function Home() {
               <button className={`tab ${tab === 'preview' ? 'tab-active' : ''}`} onClick={() => setTab('preview')}>
                 Resume Preview
               </button>
+              <button className={`tab ${tab === 'cover-letter' ? 'tab-active' : ''}`} onClick={() => setTab('cover-letter')}>
+                Cover Letter
+              </button>
             </div>
             <div className="action-buttons">
               <button className="btn-notion" onClick={applyToNotion} disabled={applying || acceptedCount === 0}>
@@ -193,6 +229,39 @@ export default function Home() {
                   )
                 )}
               </div>
+            </div>
+          )}
+
+          {tab === 'cover-letter' && (
+            <div className="cover-letter-tab">
+              <div className="tone-selector">
+                {['professional', 'conversational', 'enthusiastic'].map(t => (
+                  <button
+                    key={t}
+                    className={`tone-btn ${coverLetterTone === t ? 'tone-btn-active' : ''}`}
+                    onClick={() => setCoverLetterTone(t)}
+                    disabled={coverLetterLoading}
+                  >
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <button className="btn-primary" onClick={generateCoverLetter} disabled={coverLetterLoading}>
+                {coverLetterLoading ? 'Generating...' : coverLetter ? 'Regenerate' : 'Generate Cover Letter'}
+              </button>
+              {coverLetter && (
+                <>
+                  <textarea
+                    className="cover-letter-body"
+                    value={coverLetter}
+                    onChange={e => setCoverLetter(e.target.value)}
+                    rows={20}
+                  />
+                  <button className="btn-download" onClick={downloadCoverLetter}>
+                    Download .docx
+                  </button>
+                </>
+              )}
             </div>
           )}
 

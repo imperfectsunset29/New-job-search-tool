@@ -102,7 +102,6 @@ textarea { resize: vertical; }
   padding: 0.1rem 0.4rem;
   letter-spacing: 0.03em;
 }
-}
 
 .section-tag {
   font-size: 0.75rem;
@@ -237,4 +236,43 @@ textarea { resize: vertical; }
   border-radius: 3px;
   padding: 0 2px;
   margin-left: 2px;
+}
+
+.cover-letter-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tone-selector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tone-btn {
+  padding: 0.35rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  background: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.tone-btn-active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.cover-letter-body {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 1rem;
+  resize: vertical;
+  box-sizing: border-box;
 }
