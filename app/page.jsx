@@ -141,9 +141,12 @@ export default function Home() {
           </div>
 
           {tab === 'changes' && suggestions.map((s, i) => (
-            <div key={i} className={`card ${accepted[i] ? 'accepted' : 'rejected'}`}>
+            <div key={i} className={`card ${accepted[i] ? (s.type === 'cut' ? 'accepted-cut' : 'accepted') : 'rejected'}`}>
               <div className="card-header">
-                <span className="section-tag">{s.section}</span>
+                <div className="card-header-left">
+                  {s.type === 'cut' && <span className="cut-badge">✂ Cut</span>}
+                  <span className="section-tag">{s.section}</span>
+                </div>
                 <button
                   className={accepted[i] ? 'btn-reject' : 'btn-accept'}
                   onClick={() => setAccepted(a => ({ ...a, [i]: !a[i] }))}
@@ -158,7 +161,7 @@ export default function Home() {
                   <p>{s.original}</p>
                 </div>
                 <div className="after">
-                  <span className="diff-label">After</span>
+                  <span className="diff-label">{s.type === 'cut' ? 'Trimmed' : 'After'}</span>
                   <p>{s.suggested}</p>
                 </div>
               </div>

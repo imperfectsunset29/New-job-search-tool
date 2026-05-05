@@ -80,6 +80,7 @@ textarea { resize: vertical; }
   transition: border-color 0.15s;
 }
 .card.accepted { border-color: #27ae60; }
+.card.accepted-cut { border-color: #e67e22; }
 .card.rejected { border-color: #e0e0e0; opacity: 0.6; }
 
 .card-header {
@@ -87,6 +88,20 @@ textarea { resize: vertical; }
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.5rem;
+}
+
+.card-header-left { display: flex; align-items: center; gap: 0.5rem; }
+
+.cut-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #fef3e2;
+  color: #e67e22;
+  border: 1px solid #e67e22;
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  letter-spacing: 0.03em;
+}
 }
 
 .section-tag {

@@ -93,8 +93,11 @@ export async function POST(req) {
       max_tokens: 2048,
       messages: [{
         role: 'user',
-        content: `You are an expert resume coach. Propose up to 6 specific, high-impact edits to improve this resume's match for the job below. Prioritize incorporating missing keywords naturally.${fewShot}
+        content: `You are an expert resume coach. Analyze this resume against the job description and return two types of suggestions:
 
+1. EDITS (type "edit"): up to 4 targeted rewrites that incorporate missing keywords or strengthen weak descriptions
+2. CUTS (type "cut"): up to 3 specific passages that are too long, redundant, or irrelevant to this role — with a tighter version
+${fewShot}
 Job Description:
 ${jobDescription}
 
@@ -102,7 +105,7 @@ Resume:
 ${resumeText}
 
 Return only a valid JSON array, no markdown:
-[{"section":"string","original":"exact text from resume to replace","suggested":"replacement text","reason":"one sentence why this helps"}]`,
+[{"type":"edit"|"cut","section":"string","original":"exact text from resume","suggested":"replacement (shorter for cuts)","reason":"one sentence why"}]`,
       }],
     });
 
