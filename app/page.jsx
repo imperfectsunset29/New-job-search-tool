@@ -36,7 +36,7 @@ export default function Home() {
   const [tab, setTab] = useState('changes');
 
   useEffect(() => {
-    const saved = localStorage.getItem('notionPageUrl');
+    const saved = localStorage.getItem('notionPageUrl') || 'https://www.notion.so/iamvalentina/Valentina-Calvache-Senior-Content-Designer-3574ee47dcf580e1a5d8d14b80c04626';
     if (saved) setPageUrl(saved);
   }, []);
 
@@ -109,16 +109,6 @@ export default function Home() {
     <main className="main">
       <h1>Resume Optimizer</h1>
       <div className="inputs">
-        <div className="field">
-          <label>Notion Page URL</label>
-          <input
-            type="text"
-            placeholder="https://www.notion.so/Your-Resume-abc123..."
-            value={pageUrl}
-            onChange={e => setPageUrl(e.target.value)}
-          />
-          <small>Share the page with your "Resume Optimizer" integration first</small>
-        </div>
         <div className="field">
           <label>Job Description</label>
           <textarea
