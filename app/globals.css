@@ -276,3 +276,34 @@ textarea { resize: vertical; }
   resize: vertical;
   box-sizing: border-box;
 }
+
+.notes-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.notes-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.notes-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.65rem 0.85rem;
+  resize: vertical;
+  box-sizing: border-box;
+  color: #333;
+}
+
+.notes-input::placeholder {
+  color: #aaa;
+}

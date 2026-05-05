@@ -37,6 +37,7 @@ export default function Home() {
   const [coverLetter, setCoverLetter] = useState('');
   const [coverLetterLoading, setCoverLetterLoading] = useState(false);
   const [coverLetterTone, setCoverLetterTone] = useState('professional');
+  const [coverLetterNotes, setCoverLetterNotes] = useState('');
 
   useEffect(() => {
     const saved = localStorage.getItem('notionPageUrl') || 'https://www.notion.so/iamvalentina/Valentina-Calvache-Senior-Content-Designer-3574ee47dcf580e1a5d8d14b80c04626';
@@ -75,7 +76,7 @@ export default function Home() {
     const res = await fetch('/api/cover-letter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resumeText, jobDescription: jobDesc, tone: coverLetterTone }),
+      body: JSON.stringify({ resumeText, jobDescription: jobDesc, tone: coverLetterTone, notes: coverLetterNotes }),
     });
     const data = await res.json();
     if (res.ok) setCoverLetter(data.coverLetter);
@@ -245,6 +246,17 @@ export default function Home() {
                     {t.charAt(0).toUpperCase() + t.slice(1)}
                   </button>
                 ))}
+              </div>
+              <div className="notes-field">
+                <label className="notes-label">Quick ideas (optional)</label>
+                <textarea
+                  className="notes-input"
+                  placeholder="e.g. mention my nonprofit work, emphasize remote experience, keep it under 3 paragraphs..."
+                  value={coverLetterNotes}
+                  onChange={e => setCoverLetterNotes(e.target.value)}
+                  rows={3}
+                  disabled={coverLetterLoading}
+                />
               </div>
               <button className="btn-primary" onClick={generateCoverLetter} disabled={coverLetterLoading}>
                 {coverLetterLoading ? 'Generating...' : coverLetter ? 'Regenerate' : 'Generate Cover Letter'}

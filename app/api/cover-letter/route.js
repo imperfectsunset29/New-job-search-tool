@@ -11,7 +11,7 @@ const TONE_DESCRIPTIONS = {
 
 export async function POST(req) {
   try {
-    const { resumeText, jobDescription, tone = 'professional' } = await req.json();
+    const { resumeText, jobDescription, tone = 'professional', notes = '' } = await req.json();
 
     if (!resumeText || !jobDescription) {
       return NextResponse.json({ error: 'Missing resumeText or jobDescription' }, { status: 400 });
@@ -32,6 +32,7 @@ Structure:
 - First paragraph: why this role and company excite them (infer from the job description)
 - Middle paragraph(s): 2-3 strongest matching experiences from the resume
 - Closing: confident call to action
+${notes.trim() ? `\nAdditional guidance from the candidate:\n${notes.trim()}` : ''}
 
 Job Description:
 ${jobDescription}
