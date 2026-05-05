@@ -159,7 +159,29 @@ textarea { resize: vertical; }
   transition: background 0.15s;
 }
 .btn-download:hover { background: #219a52; }
-.btn-download.full-width { width: 100%; }
+.btn-download:disabled { background: #999; cursor: not-allowed; }
+
+.btn-notion {
+  padding: 0.7rem 1.4rem;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-notion:hover:not(:disabled) { background: #333; }
+.btn-notion:disabled { background: #999; cursor: not-allowed; }
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+.action-buttons.full-width { width: 100%; }
+.action-buttons.full-width .btn-notion { flex: 1; }
+.action-buttons.full-width .btn-download { flex: 1; }
 
 /* Tabs */
 .tabs { display: flex; gap: 0.25rem; }

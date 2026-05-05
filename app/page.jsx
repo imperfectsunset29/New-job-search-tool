@@ -65,41 +65,42 @@ export default function Home() {
     setLoading(false);
   }
 
-  async function finish() {
+  async function applyToNotion() {
     setApplying(true);
+    setError('');
     await fetch('/api/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ suggestions, accepted }),
     }).catch(() => {});
 
-    const [applyRes, downloadRes] = await Promise.all([
-      fetch('/api/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blocks, suggestions, accepted }),
-      }),
-      fetch('/api/download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeText, suggestions, accepted }),
-      }),
-    ]);
-
-    if (!applyRes.ok) {
-      const err = await applyRes.json().catch(() => ({ error: 'Failed to apply to Notion' }));
+    const res = await fetch('/api/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blocks, suggestions, accepted }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Failed to apply to Notion' }));
       setError(err.error);
+    } else {
+      setDone(true);
     }
+    setApplying(false);
+  }
 
-    const blob = await downloadRes.blob();
+  async function download() {
+    const res = await fetch('/api/download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resumeText, suggestions, accepted }),
+    });
+    const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'resume_optimized.docx';
     a.click();
     URL.revokeObjectURL(url);
-    setApplying(false);
-    setDone(true);
   }
 
   const acceptedCount = Object.values(accepted).filter(Boolean).length;
@@ -135,9 +136,14 @@ export default function Home() {
                 Resume Preview
               </button>
             </div>
-            <button className="btn-download" onClick={finish} disabled={applying || acceptedCount === 0}>
-              {applying ? 'Applying...' : `Apply to Notion & Download (${acceptedCount})`}
-            </button>
+            <div className="action-buttons">
+              <button className="btn-notion" onClick={applyToNotion} disabled={applying || acceptedCount === 0}>
+                {applying ? 'Applying...' : `Apply to Notion (${acceptedCount})`}
+              </button>
+              <button className="btn-download" onClick={download} disabled={acceptedCount === 0}>
+                Download .docx
+              </button>
+            </div>
           </div>
 
           {tab === 'changes' && suggestions.map((s, i) => (
@@ -190,10 +196,15 @@ export default function Home() {
             </div>
           )}
 
-          <button className="btn-download full-width" onClick={finish} disabled={applying || acceptedCount === 0}>
-            {applying ? 'Applying...' : `Apply to Notion & Download (${acceptedCount})`}
-          </button>
-          {done && <p className="success">Done! Changes applied to Notion and .docx downloaded.</p>}
+          <div className="action-buttons full-width">
+            <button className="btn-notion" onClick={applyToNotion} disabled={applying || acceptedCount === 0}>
+              {applying ? 'Applying...' : `Apply to Notion (${acceptedCount})`}
+            </button>
+            <button className="btn-download" onClick={download} disabled={acceptedCount === 0}>
+              Download .docx
+            </button>
+          </div>
+          {done && <p className="success">Changes applied to Notion!</p>}
         </div>
       )}
     </main>
