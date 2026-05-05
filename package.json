@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
+    "@notionhq/client": "^5.20.0",
     "@upstash/redis": "^1.38.0",
     "docx": "^9.6.1",
     "next": "^15.3.0",

@@ -9,9 +9,7 @@ function buildPreview(resumeText, suggestions, accepted) {
     if (idx === -1) return;
     replacements.push({ start: idx, end: idx + s.original.length, original: s.original, suggested: s.suggested });
   });
-
   replacements.sort((a, b) => a.start - b.start);
-
   const segments = [];
   let cursor = 0;
   for (const r of replacements) {
@@ -25,19 +23,21 @@ function buildPreview(resumeText, suggestions, accepted) {
 }
 
 export default function Home() {
-  const [docUrl, setDocUrl] = useState('');
+  const [pageUrl, setPageUrl] = useState('');
   const [jobDesc, setJobDesc] = useState('');
   const [loading, setLoading] = useState(false);
+  const [applying, setApplying] = useState(false);
   const [error, setError] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [accepted, setAccepted] = useState({});
   const [resumeText, setResumeText] = useState('');
+  const [blocks, setBlocks] = useState([]);
   const [done, setDone] = useState(false);
   const [tab, setTab] = useState('changes');
 
   useEffect(() => {
-    const saved = localStorage.getItem('resumeDocUrl');
-    if (saved) setDocUrl(saved);
+    const saved = localStorage.getItem('notionPageUrl');
+    if (saved) setPageUrl(saved);
   }, []);
 
   async function analyze() {
@@ -50,14 +50,15 @@ export default function Home() {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ docUrl, jobDescription: jobDesc }),
+        body: JSON.stringify({ pageUrl, jobDescription: jobDesc }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setSuggestions(data.suggestions);
       setResumeText(data.resumeText);
+      setBlocks(data.blocks);
       setAccepted(Object.fromEntries(data.suggestions.map((_, i) => [i, true])));
-      localStorage.setItem('resumeDocUrl', docUrl);
+      localStorage.setItem('notionPageUrl', pageUrl);
     } catch (e) {
       setError(e.message);
     }
@@ -65,24 +66,39 @@ export default function Home() {
   }
 
   async function finish() {
+    setApplying(true);
     await fetch('/api/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ suggestions, accepted }),
     }).catch(() => {});
 
-    const res = await fetch('/api/download', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resumeText, suggestions, accepted }),
-    });
-    const blob = await res.blob();
+    const [applyRes, downloadRes] = await Promise.all([
+      fetch('/api/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blocks, suggestions, accepted }),
+      }),
+      fetch('/api/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resumeText, suggestions, accepted }),
+      }),
+    ]);
+
+    if (!applyRes.ok) {
+      const err = await applyRes.json().catch(() => ({ error: 'Failed to apply to Notion' }));
+      setError(err.error);
+    }
+
+    const blob = await downloadRes.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'resume_optimized.docx';
     a.click();
     URL.revokeObjectURL(url);
+    setApplying(false);
     setDone(true);
   }
 
@@ -92,19 +108,17 @@ export default function Home() {
   return (
     <main className="main">
       <h1>Resume Optimizer</h1>
-
       <div className="inputs">
         <div className="field">
-          <label>Google Doc URL</label>
+          <label>Notion Page URL</label>
           <input
             type="text"
-            placeholder="https://docs.google.com/document/d/..."
-            value={docUrl}
-            onChange={e => setDocUrl(e.target.value)}
+            placeholder="https://www.notion.so/Your-Resume-abc123..."
+            value={pageUrl}
+            onChange={e => setPageUrl(e.target.value)}
           />
-          <small>Set sharing to "Anyone with link can view" in Google Docs</small>
+          <small>Share the page with your "Resume Optimizer" integration first</small>
         </div>
-
         <div className="field">
           <label>Job Description</label>
           <textarea
@@ -114,11 +128,9 @@ export default function Home() {
             rows={8}
           />
         </div>
-
-        <button className="btn-primary" onClick={analyze} disabled={loading || !docUrl || !jobDesc}>
+        <button className="btn-primary" onClick={analyze} disabled={loading || !pageUrl || !jobDesc}>
           {loading ? 'Analyzing...' : 'Analyze'}
         </button>
-
         {error && <p className="error">{error}</p>}
       </div>
 
@@ -133,39 +145,35 @@ export default function Home() {
                 Resume Preview
               </button>
             </div>
-            <button className="btn-download" onClick={finish}>
-              Download ({acceptedCount} applied)
+            <button className="btn-download" onClick={finish} disabled={applying || acceptedCount === 0}>
+              {applying ? 'Applying...' : `Apply to Notion & Download (${acceptedCount})`}
             </button>
           </div>
 
-          {tab === 'changes' && (
-            <>
-              {suggestions.map((s, i) => (
-                <div key={i} className={`card ${accepted[i] ? 'accepted' : 'rejected'}`}>
-                  <div className="card-header">
-                    <span className="section-tag">{s.section}</span>
-                    <button
-                      className={accepted[i] ? 'btn-reject' : 'btn-accept'}
-                      onClick={() => setAccepted(a => ({ ...a, [i]: !a[i] }))}
-                    >
-                      {accepted[i] ? 'Reject' : 'Accept'}
-                    </button>
-                  </div>
-                  <p className="reason">{s.reason}</p>
-                  <div className="diff">
-                    <div className="before">
-                      <span className="diff-label">Before</span>
-                      <p>{s.original}</p>
-                    </div>
-                    <div className="after">
-                      <span className="diff-label">After</span>
-                      <p>{s.suggested}</p>
-                    </div>
-                  </div>
+          {tab === 'changes' && suggestions.map((s, i) => (
+            <div key={i} className={`card ${accepted[i] ? 'accepted' : 'rejected'}`}>
+              <div className="card-header">
+                <span className="section-tag">{s.section}</span>
+                <button
+                  className={accepted[i] ? 'btn-reject' : 'btn-accept'}
+                  onClick={() => setAccepted(a => ({ ...a, [i]: !a[i] }))}
+                >
+                  {accepted[i] ? 'Reject' : 'Accept'}
+                </button>
+              </div>
+              <p className="reason">{s.reason}</p>
+              <div className="diff">
+                <div className="before">
+                  <span className="diff-label">Before</span>
+                  <p>{s.original}</p>
                 </div>
-              ))}
-            </>
-          )}
+                <div className="after">
+                  <span className="diff-label">After</span>
+                  <p>{s.suggested}</p>
+                </div>
+              </div>
+            </div>
+          ))}
 
           {tab === 'preview' && (
             <div className="resume-preview">
@@ -189,11 +197,10 @@ export default function Home() {
             </div>
           )}
 
-          <button className="btn-download full-width" onClick={finish}>
-            Download ({acceptedCount} changes applied)
+          <button className="btn-download full-width" onClick={finish} disabled={applying || acceptedCount === 0}>
+            {applying ? 'Applying...' : `Apply to Notion & Download (${acceptedCount})`}
           </button>
-
-          {done && <p className="success">Downloaded! Feedback saved — future suggestions will match your style.</p>}
+          {done && <p className="success">Done! Changes applied to Notion and .docx downloaded.</p>}
         </div>
       )}
     </main>
