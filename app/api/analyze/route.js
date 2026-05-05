@@ -13,6 +13,7 @@ function getRedis() {
 }
 
 export async function POST(req) {
+  try {
   const { docUrl, jobDescription } = await req.json();
 
   const match = docUrl.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
@@ -86,4 +87,7 @@ Return only a valid JSON array, no markdown:
   }
 
   return NextResponse.json({ suggestions, resumeText });
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }
