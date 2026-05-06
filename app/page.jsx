@@ -40,6 +40,7 @@ export default function Home() {
   const [coverLetterNotes, setCoverLetterNotes] = useState('');
   const [whyHereAnswer, setWhyHereAnswer] = useState('');
   const [whyHereLoading, setWhyHereLoading] = useState(false);
+  const [whyHereQuestion, setWhyHereQuestion] = useState('Why do you want to work here?');
 
   useEffect(() => {
     const saved = localStorage.getItem('notionPageUrl') || 'https://www.notion.so/iamvalentina/Valentina-Calvache-Senior-Content-Designer-3574ee47dcf580e1a5d8d14b80c04626';
@@ -93,7 +94,7 @@ export default function Home() {
     const res = await fetch('/api/why-here', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resumeText, jobDescription: jobDesc }),
+      body: JSON.stringify({ resumeText, jobDescription: jobDesc, question: whyHereQuestion }),
     });
     const data = await res.json();
     if (res.ok) setWhyHereAnswer(data.answer);
@@ -300,7 +301,16 @@ export default function Home() {
 
           {tab === 'why-here' && (
             <div className="why-here-tab">
-              <button className="btn-primary" onClick={generateWhyHere} disabled={whyHereLoading}>
+              <div className="field">
+                <label>Interview question</label>
+                <input
+                  type="text"
+                  value={whyHereQuestion}
+                  onChange={e => setWhyHereQuestion(e.target.value)}
+                  disabled={whyHereLoading}
+                />
+              </div>
+              <button className="btn-primary" onClick={generateWhyHere} disabled={whyHereLoading || !whyHereQuestion.trim()}>
                 {whyHereLoading ? 'Generating...' : whyHereAnswer ? 'Regenerate' : 'Generate answer'}
               </button>
               {whyHereAnswer && (

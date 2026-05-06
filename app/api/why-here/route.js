@@ -5,7 +5,7 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req) {
   try {
-    const { resumeText, jobDescription } = await req.json();
+    const { resumeText, jobDescription, question = 'Why do you want to work here?' } = await req.json();
 
     if (!resumeText || !jobDescription) {
       return NextResponse.json({ error: 'Missing resumeText or jobDescription' }, { status: 400 });
@@ -16,7 +16,7 @@ export async function POST(req) {
       max_tokens: 512,
       messages: [{
         role: 'user',
-        content: `You are helping someone prepare a spoken answer to "Why do you want to work here?"
+        content: `You are helping someone prepare a spoken answer to "${question}"
 
 First, identify the company from the job description. Then draw on what you know about that company — their products, culture, how they publicly describe themselves, recent pivots or signals. Use that knowledge to write the answer.
 
