@@ -319,3 +319,9 @@ textarea { resize: vertical; }
 .guidelines-input::placeholder {
   color: #bbb;
 }
+
+.why-here-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

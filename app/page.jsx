@@ -38,6 +38,8 @@ export default function Home() {
   const [coverLetterLoading, setCoverLetterLoading] = useState(false);
   const [coverLetterTone, setCoverLetterTone] = useState('professional');
   const [coverLetterNotes, setCoverLetterNotes] = useState('');
+  const [whyHereAnswer, setWhyHereAnswer] = useState('');
+  const [whyHereLoading, setWhyHereLoading] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('notionPageUrl') || 'https://www.notion.so/iamvalentina/Valentina-Calvache-Senior-Content-Designer-3574ee47dcf580e1a5d8d14b80c04626';
@@ -51,6 +53,7 @@ export default function Home() {
     setDone(false);
     setTab('changes');
     setCoverLetter('');
+    setWhyHereAnswer('');
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
@@ -82,6 +85,20 @@ export default function Home() {
     if (res.ok) setCoverLetter(data.coverLetter);
     else setError(data.error);
     setCoverLetterLoading(false);
+  }
+
+  async function generateWhyHere() {
+    setWhyHereLoading(true);
+    setError('');
+    const res = await fetch('/api/why-here', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resumeText, jobDescription: jobDesc }),
+    });
+    const data = await res.json();
+    if (res.ok) setWhyHereAnswer(data.answer);
+    else setError(data.error);
+    setWhyHereLoading(false);
   }
 
   async function downloadCoverLetter() {
@@ -171,6 +188,9 @@ export default function Home() {
               </button>
               <button className={`tab ${tab === 'cover-letter' ? 'tab-active' : ''}`} onClick={() => setTab('cover-letter')}>
                 Cover Letter
+              </button>
+              <button className={`tab ${tab === 'why-here' ? 'tab-active' : ''}`} onClick={() => setTab('why-here')}>
+                Why here?
               </button>
             </div>
             <div className="action-buttons">
@@ -274,6 +294,22 @@ export default function Home() {
                     Download .docx
                   </button>
                 </>
+              )}
+            </div>
+          )}
+
+          {tab === 'why-here' && (
+            <div className="why-here-tab">
+              <button className="btn-primary" onClick={generateWhyHere} disabled={whyHereLoading}>
+                {whyHereLoading ? 'Generating...' : whyHereAnswer ? 'Regenerate' : 'Generate answer'}
+              </button>
+              {whyHereAnswer && (
+                <textarea
+                  className="cover-letter-body"
+                  value={whyHereAnswer}
+                  onChange={e => setWhyHereAnswer(e.target.value)}
+                  rows={10}
+                />
               )}
             </div>
           )}
