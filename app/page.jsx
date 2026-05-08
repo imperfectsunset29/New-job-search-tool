@@ -349,14 +349,16 @@ export default function Home() {
             </div>
           )}
 
-          <div className="action-buttons full-width">
-            <button className="btn-notion" onClick={applyToNotion} disabled={applying || acceptedCount === 0}>
-              {applying ? 'Applying...' : `Apply to Notion (${acceptedCount})`}
-            </button>
-            <button className="btn-download" onClick={download} disabled={acceptedCount === 0}>
-              Download .docx
-            </button>
-          </div>
+          {tab !== 'cover-letter' && tab !== 'why-here' && (
+            <div className="action-buttons full-width">
+              <button className="btn-notion" onClick={applyToNotion} disabled={applying || acceptedCount === 0}>
+                {applying ? 'Applying...' : `Apply to Notion (${acceptedCount})`}
+              </button>
+              <button className="btn-download" onClick={download} disabled={acceptedCount === 0}>
+                Download .docx
+              </button>
+            </div>
+          )}
           {done && <p className="success">Changes applied to Notion!</p>}
         </div>
       )}
