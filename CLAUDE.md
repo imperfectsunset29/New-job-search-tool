@@ -20,6 +20,8 @@ Single Next.js 15 app (App Router) deployed on Vercel. No database — persisten
     /apply/route.js         — writes accepted changes back to Notion
     /download/route.js      — generates .docx from modified resume text
     /feedback/route.js      — saves accepted/rejected examples to Upstash Redis
+    /cover-letter/route.js  — generates a tailored cover letter (tone + user guidelines)
+    /why-here/route.js      — generates a spoken answer to "Why do you want to work here?"
 ```
 
 ## User Flow
@@ -30,6 +32,8 @@ Single Next.js 15 app (App Router) deployed on Vercel. No database — persisten
 4. User accepts/rejects each suggestion; preview tab shows colored diff
 5. Clicks "Apply to Notion & Download" — changes written to Notion live + .docx downloaded
 6. Accept/reject decisions saved to Redis for few-shot learning on future runs
+7. **Cover Letter tab** — user selects tone (professional/conversational/enthusiastic), adds optional guidelines, generates a tailored cover letter via `/api/cover-letter`
+8. **Why Here tab** — generates a spoken answer to "Why do you want to work here?" with an editable interview-style response via `/api/why-here`
 
 ## Key Design Decisions
 
@@ -38,7 +42,7 @@ Single Next.js 15 app (App Router) deployed on Vercel. No database — persisten
 - **Few-shot learning** — last 5 approved + 3 rejected suggestions are injected into the Claude prompt to match the user's style over time. Stored in Upstash Redis under key `examples` (capped at 50)
 - **Write-back strategy** — `apply/route.js` finds the Notion block containing `original` text and updates it via `notion.blocks.update()`. Preserves block type but replaces rich_text with a single plain text run
 - **Approval invariant** — nothing is written to Notion until the user explicitly clicks "Apply to Notion & Download"
-- **Claude model** — `claude-haiku-4-5-20251001`, max 6 suggestions per analysis
+- **Claude model** — `claude-haiku-4-5-20251001` across all routes (analyze, cover-letter, why-here), max 6 suggestions per analysis run
 
 ## Development Commands
 
@@ -69,6 +73,13 @@ UPSTASH_REDIS_REST_TOKEN=
 1. notion.so/my-integrations → create "Resume Optimizer" integration → copy token
 2. Open resume Notion page → Share → Invite the integration
 3. The page ID is extracted automatically from the hardcoded URL
+
+## Voice & Banned Words
+
+Both the cover letter and why-here routes enforce explicit banned words at the prompt level. **Do not soften or remove these guardrails** — they exist because the model kept producing them despite tone guidance.
+
+- `cover-letter/route.js` — bans: `genuinely`, `thrilled`, `passionate` (self-descriptor), `excited to join`, `delighted`, `eager to contribute`. Post-processing regex strips any surviving `genuinely` → `truly` as a safety net.
+- `why-here/route.js` — bans: `thrilled`, `passionate`, `excited to join`. Voice is wabi-sabi: drawn to specifics, not polish.
 
 ## Key Constraints
 

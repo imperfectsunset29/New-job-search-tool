@@ -6,7 +6,7 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const TONE_DESCRIPTIONS = {
   professional: 'Formal, measured, and concise. No exclamation marks. Authoritative but not stiff.',
   conversational: 'Warm and direct. First-person voice that reads like a human wrote it, not a template. Natural sentence flow.',
-  enthusiastic: 'Energetic and forward-leaning. Shows genuine excitement for the role without being over the top.',
+  enthusiastic: 'Energetic and forward-leaning. Shows real excitement for the role without being over the top.',
 };
 
 export async function POST(req) {
@@ -28,6 +28,9 @@ export async function POST(req) {
 
 Tone guidance: ${toneDescription}
 
+BANNED WORDS — never use these, ever, regardless of tone:
+genuinely, thrilled, passionate (as a descriptor for yourself), excited to join, delighted, eager to contribute
+
 Structure:
 - First paragraph: why this role and company excite them (infer from the job description)
 - Middle paragraph(s): 2-3 strongest matching experiences from the resume
@@ -44,7 +47,7 @@ Return only the cover letter text. No subject line, no JSON, no markdown.`,
       }],
     });
 
-    const coverLetter = message.content[0].text.trim();
+    const coverLetter = message.content[0].text.trim().replace(/\bgenuinely\b/gi, 'truly');
     return NextResponse.json({ coverLetter });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
