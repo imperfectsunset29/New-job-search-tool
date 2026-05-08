@@ -12,7 +12,7 @@ const TONE_VOICES = {
 
 export async function POST(req) {
   try {
-    const { resumeText, jobDescription, question = 'Why do you want to work here?', tone = 'conversational' } = await req.json();
+    const { resumeText, jobDescription, question = 'Why do you want to work here?', tone = 'conversational', maxChars = null } = await req.json();
 
     if (!resumeText || !jobDescription) {
       return NextResponse.json({ error: 'Missing resumeText or jobDescription' }, { status: 400 });
@@ -31,7 +31,7 @@ First, identify the company from the job description. Then draw on what you know
 
 ${voiceGuidance}
 
-Write 1–2 paragraphs (60–90 seconds spoken). Lead with something specific about the company that most candidates wouldn't name — a product detail, a cultural signal, the way they approach a problem. Then connect it to 1–2 concrete things from the candidate's background. No filler. No summary sentence at the end.
+${maxChars ? `Length: aim for approximately ${maxChars} characters. Stay within 10% of that target.` : 'Write 1–2 paragraphs (60–90 seconds spoken).'}  Lead with something specific about the company that most candidates wouldn't name — a product detail, a cultural signal, the way they approach a problem. Then connect it to 1–2 concrete things from the candidate's background. No filler. No summary sentence at the end.
 
 Job Description:
 ${jobDescription}

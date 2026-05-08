@@ -42,6 +42,7 @@ export default function Home() {
   const [whyHereLoading, setWhyHereLoading] = useState(false);
   const [whyHereQuestion, setWhyHereQuestion] = useState('Why do you want to work here?');
   const [whyHereTone, setWhyHereTone] = useState('conversational');
+  const [whyHereLength, setWhyHereLength] = useState('');
 
   useEffect(() => {
     const saved = localStorage.getItem('notionPageUrl') || 'https://www.notion.so/iamvalentina/Valentina-Calvache-Senior-Content-Designer-3574ee47dcf580e1a5d8d14b80c04626';
@@ -95,7 +96,7 @@ export default function Home() {
     const res = await fetch('/api/why-here', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resumeText, jobDescription: jobDesc, question: whyHereQuestion, tone: whyHereTone }),
+      body: JSON.stringify({ resumeText, jobDescription: jobDesc, question: whyHereQuestion, tone: whyHereTone, maxChars: whyHereLength ? parseInt(whyHereLength) : null }),
     });
     const data = await res.json();
     if (res.ok) setWhyHereAnswer(data.answer);
@@ -308,6 +309,17 @@ export default function Home() {
                   type="text"
                   value={whyHereQuestion}
                   onChange={e => setWhyHereQuestion(e.target.value)}
+                  disabled={whyHereLoading}
+                />
+              </div>
+              <div className="field">
+                <label>Target length in characters <span style={{fontWeight: 'normal', color: '#888'}}>(optional)</span></label>
+                <input
+                  type="number"
+                  min="50"
+                  placeholder="e.g. 500"
+                  value={whyHereLength}
+                  onChange={e => setWhyHereLength(e.target.value)}
                   disabled={whyHereLoading}
                 />
               </div>
