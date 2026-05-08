@@ -7,6 +7,7 @@ const TONE_DESCRIPTIONS = {
   professional: 'Formal, measured, and concise. No exclamation marks. Authoritative but not stiff.',
   conversational: 'Warm and direct. First-person voice that reads like a human wrote it, not a template. Natural sentence flow.',
   enthusiastic: 'Energetic and forward-leaning. Shows real excitement for the role without being over the top.',
+  edgy: 'Sharp, unconventional, and confident. The writer thinks in systems and contradictions. She might name a tension in the industry, reframe what the role actually demands, or open with something unexpected. Short deliberate sentences. No flattery, no hedging. This letter would make a conventional hiring manager pause and a visionary one keep reading.',
 };
 
 export async function POST(req) {

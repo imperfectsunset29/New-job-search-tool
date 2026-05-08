@@ -271,7 +271,7 @@ export default function Home() {
                 />
               </div>
               <div className="tone-selector">
-                {['professional', 'conversational', 'enthusiastic'].map(t => (
+                {['professional', 'conversational', 'enthusiastic', 'edgy'].map(t => (
                   <button
                     key={t}
                     className={`tone-btn ${coverLetterTone === t ? 'tone-btn-active' : ''}`}
