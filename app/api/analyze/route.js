@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Redis } from '@upstash/redis';
-import { Client } from '@notionhq/client';
 import { NextResponse } from 'next/server';
+import { extractPageId, fetchNotionBlocks } from '../../lib/notion';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -11,42 +11,6 @@ function getRedis() {
     url: process.env.UPSTASH_REDIS_REST_URL,
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
   });
-}
-
-function extractPageId(pageUrl) {
-  // Handles: notion.so/Title-{id}, notion.so/{id}, app.notions.so/.../{id}
-  const match = pageUrl.match(/([a-f0-9]{32})(?:[?#]|$)/i) ||
-                pageUrl.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i);
-  return match ? match[1] : null;
-}
-
-function blockToText(block) {
-  const type = block.type;
-  const richTextTypes = ['paragraph', 'heading_1', 'heading_2', 'heading_3',
-    'bulleted_list_item', 'numbered_list_item', 'to_do', 'quote', 'callout'];
-
-  if (!richTextTypes.includes(type)) return null;
-
-  const richText = block[type]?.rich_text ?? [];
-  return richText.map(t => t.plain_text).join('');
-}
-
-async function fetchNotionBlocks(pageId) {
-  const notion = new Client({ auth: process.env.NOTION_API_KEY });
-  const blocks = [];
-  let cursor;
-
-  do {
-    const res = await notion.blocks.children.list({
-      block_id: pageId,
-      start_cursor: cursor,
-      page_size: 100,
-    });
-    blocks.push(...res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-
-  return blocks.map(b => ({ id: b.id, type: b.type, text: blockToText(b) ?? '' }));
 }
 
 export async function POST(req) {

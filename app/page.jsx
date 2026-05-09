@@ -43,6 +43,16 @@ export default function Home() {
   const [whyHereQuestion, setWhyHereQuestion] = useState('Why do you want to work here?');
   const [whyHereTone, setWhyHereTone] = useState('conversational');
   const [whyHereLength, setWhyHereLength] = useState('');
+  const [neutralSaving, setNeutralSaving] = useState(false);
+  const [neutralSaved, setNeutralSaved] = useState(false);
+  const [neutralRestoring, setNeutralRestoring] = useState(false);
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+  const [coherenceSuggestions, setCoherenceSuggestions] = useState([]);
+  const [coherenceBlocks, setCoherenceBlocks] = useState([]);
+  const [coherenceLoading, setCoherenceLoading] = useState(false);
+  const [coherenceAccepted, setCoherenceAccepted] = useState({});
+  const [coherenceApplying, setCoherenceApplying] = useState(false);
+  const [coherenceDone, setCoherenceDone] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('notionPageUrl') || 'https://www.notion.so/iamvalentina/Valentina-Calvache-Senior-Content-Designer-3574ee47dcf580e1a5d8d14b80c04626';
@@ -157,6 +167,72 @@ export default function Home() {
     URL.revokeObjectURL(url);
   }
 
+  async function saveNeutral() {
+    setNeutralSaving(true);
+    setNeutralSaved(false);
+    const res = await fetch('/api/snapshot-neutral', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pageUrl }),
+    });
+    if (res.ok) {
+      setNeutralSaved(true);
+      setTimeout(() => setNeutralSaved(false), 3000);
+    } else {
+      const d = await res.json();
+      setError(d.error);
+    }
+    setNeutralSaving(false);
+  }
+
+  async function restoreNeutral() {
+    setNeutralRestoring(true);
+    const res = await fetch('/api/restore-neutral', { method: 'POST' });
+    if (!res.ok) {
+      const d = await res.json();
+      setError(d.error);
+    }
+    setNeutralRestoring(false);
+    setShowRestoreConfirm(false);
+  }
+
+  async function runCoherencePass() {
+    setCoherenceLoading(true);
+    setCoherenceSuggestions([]);
+    setCoherenceDone(false);
+    setError('');
+    const res = await fetch('/api/coherence', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pageUrl }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setCoherenceSuggestions(data.suggestions);
+      setCoherenceBlocks(data.blocks);
+      setCoherenceAccepted(Object.fromEntries(data.suggestions.map((_, i) => [i, true])));
+    } else {
+      setError(data.error);
+    }
+    setCoherenceLoading(false);
+  }
+
+  async function applyCoherence() {
+    setCoherenceApplying(true);
+    setError('');
+    const res = await fetch('/api/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blocks: coherenceBlocks, suggestions: coherenceSuggestions, accepted: coherenceAccepted }),
+    });
+    if (res.ok) setCoherenceDone(true);
+    else {
+      const d = await res.json().catch(() => ({ error: 'Failed to apply' }));
+      setError(d.error);
+    }
+    setCoherenceApplying(false);
+  }
+
   const acceptedCount = Object.values(accepted).filter(Boolean).length;
   const previewSegments = resumeText ? buildPreview(resumeText, suggestions, accepted) : [];
 
@@ -176,6 +252,24 @@ export default function Home() {
         <button className="btn-primary" onClick={analyze} disabled={loading || !pageUrl || !jobDesc}>
           {loading ? 'Analyzing...' : 'Analyze'}
         </button>
+        <div className="baseline-actions">
+          <button className="btn-secondary" onClick={saveNeutral} disabled={neutralSaving || !pageUrl}>
+            {neutralSaving ? 'Saving...' : neutralSaved ? 'Saved ✓' : 'Save as neutral'}
+          </button>
+          {!showRestoreConfirm ? (
+            <button className="btn-secondary btn-restore" onClick={() => setShowRestoreConfirm(true)} disabled={neutralRestoring || !pageUrl}>
+              Restore to neutral
+            </button>
+          ) : (
+            <span className="restore-confirm">
+              This will overwrite your Notion resume.
+              <button className="btn-confirm" onClick={restoreNeutral} disabled={neutralRestoring}>
+                {neutralRestoring ? 'Restoring...' : 'Confirm'}
+              </button>
+              <button className="btn-cancel" onClick={() => setShowRestoreConfirm(false)}>Cancel</button>
+            </span>
+          )}
+        </div>
         {error && <p className="error">{error}</p>}
       </div>
 
@@ -362,6 +456,51 @@ export default function Home() {
           {done && <p className="success">Changes applied to Notion!</p>}
         </div>
       )}
+      <div className="coherence-section">
+        <div className="coherence-header">
+          <div>
+            <h2 className="coherence-title">Coherence pass</h2>
+            <p className="coherence-desc">Reconciles tonal inconsistencies from piecemeal edits into a unified voice — without changing any facts.</p>
+          </div>
+          <button className="btn-secondary" onClick={runCoherencePass} disabled={coherenceLoading || !pageUrl}>
+            {coherenceLoading ? 'Analyzing...' : 'Run coherence pass'}
+          </button>
+        </div>
+        {coherenceSuggestions.length > 0 && (
+          <>
+            {coherenceSuggestions.map((s, i) => (
+              <div key={i} className={`card ${coherenceAccepted[i] ? 'accepted' : 'rejected'}`}>
+                <div className="card-header">
+                  <div className="card-header-left">
+                    <span className="section-tag">{s.section}</span>
+                  </div>
+                  <button
+                    className={coherenceAccepted[i] ? 'btn-reject' : 'btn-accept'}
+                    onClick={() => setCoherenceAccepted(a => ({ ...a, [i]: !a[i] }))}
+                  >
+                    {coherenceAccepted[i] ? 'Reject' : 'Accept'}
+                  </button>
+                </div>
+                <p className="reason">{s.reason}</p>
+                <div className="diff">
+                  <div className="before">
+                    <span className="diff-label">Before</span>
+                    <p>{s.original}</p>
+                  </div>
+                  <div className="after">
+                    <span className="diff-label">After</span>
+                    <p>{s.suggested}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button className="btn-notion" onClick={applyCoherence} disabled={coherenceApplying || !Object.values(coherenceAccepted).some(Boolean)}>
+              {coherenceApplying ? 'Applying...' : 'Apply to Notion'}
+            </button>
+            {coherenceDone && <p className="success">Coherence pass applied to Notion!</p>}
+          </>
+        )}
+      </div>
     </main>
   );
 }
