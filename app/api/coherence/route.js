@@ -11,11 +11,13 @@ export async function POST(req) {
     if (!pageId) return NextResponse.json({ error: 'Invalid Notion page URL' }, { status: 400 });
 
     const blocks = await fetchNotionBlocks(pageId);
-    const resumeText = blocks.map(b => b.text).filter(Boolean).join('\n');
+    const textBlocks = blocks.filter(b => b.text);
 
-    if (!resumeText.trim()) {
+    if (!textBlocks.length) {
       return NextResponse.json({ error: 'Could not read Notion page.' }, { status: 400 });
     }
+
+    const numberedBlocks = textBlocks.map((b, i) => `[${i}] ${b.text}`).join('\n');
 
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
@@ -24,15 +26,18 @@ export async function POST(req) {
         role: 'user',
         content: `This resume has been edited piecemeal across many job applications and may have tonal inconsistencies — different registers, rhythms, or phrasings sitting next to each other.
 
+Each line below is a single Notion block, prefixed with its index number.
+
 Rewrite it as a single unified voice. Preserve all facts, dates, titles, and metrics exactly. Do not add or remove content. Only reconcile tone and phrasing.
 
-Return a JSON array of objects for every block that needs changing:
-[{ "original": "<exact original text>", "suggested": "<rewritten text>", "section": "coherence", "type": "edit", "reason": "<one sentence why>" }]
-Only include blocks that actually need changing. If a block is already consistent, omit it.
+For every block that needs changing, return a JSON object where "original" is the EXACT full text of that block (without the [index] prefix), and "suggested" is the rewrite.
+
+Return a JSON array — only blocks that actually need changing:
+[{ "original": "<exact block text>", "suggested": "<rewritten text>", "section": "coherence", "type": "edit", "reason": "<one sentence why>" }]
 Return only the JSON array, no markdown.
 
-Resume:
-${resumeText}`,
+Resume blocks:
+${numberedBlocks}`,
       }],
     });
 

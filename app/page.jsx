@@ -54,7 +54,7 @@ export default function Home() {
   const [coherenceLoading, setCoherenceLoading] = useState(false);
   const [coherenceAccepted, setCoherenceAccepted] = useState({});
   const [coherenceApplying, setCoherenceApplying] = useState(false);
-  const [coherenceDone, setCoherenceDone] = useState(false);
+  const [coherenceApplied, setCoherenceApplied] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('notionPageUrl') || 'https://www.notion.so/iamvalentina/Valentina-Calvache-Senior-Content-Designer-3574ee47dcf580e1a5d8d14b80c04626';
@@ -233,17 +233,16 @@ export default function Home() {
 
   async function applyCoherence() {
     setCoherenceApplying(true);
+    setCoherenceApplied(null);
     setError('');
     const res = await fetch('/api/apply', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ blocks: coherenceBlocks, suggestions: coherenceSuggestions, accepted: coherenceAccepted }),
     });
-    if (res.ok) setCoherenceDone(true);
-    else {
-      const d = await res.json().catch(() => ({ error: 'Failed to apply' }));
-      setError(d.error);
-    }
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) setCoherenceApplied(d.applied ?? 0);
+    else setError(d.error || 'Failed to apply');
     setCoherenceApplying(false);
   }
 
@@ -531,7 +530,11 @@ export default function Home() {
             <button className="btn-notion" onClick={applyCoherence} disabled={coherenceApplying || !Object.values(coherenceAccepted).some(Boolean)}>
               {coherenceApplying ? 'Applying...' : 'Apply to Notion'}
             </button>
-            {coherenceDone && <p className="success">Coherence pass applied to Notion!</p>}
+            {coherenceApplied !== null && (
+              <p className={coherenceApplied > 0 ? 'success' : 'error'}>
+                {coherenceApplied > 0 ? `${coherenceApplied} block${coherenceApplied === 1 ? '' : 's'} updated in Notion.` : 'No blocks matched — try running the coherence pass again.'}
+              </p>
+            )}
           </>
         )}
       </div>
