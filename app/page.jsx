@@ -325,7 +325,7 @@ export default function Home() {
             </div>
             <div className="action-buttons">
               <button className="btn-notion" onClick={applyToNotion} disabled={applying || acceptedCount === 0}>
-                {applying ? 'Applying...' : `Apply to Notion (${acceptedCount})`}
+                {applying ? 'Applying...' : `Apply resume edits to Notion (${acceptedCount})`}
               </button>
               <button className="btn-download" onClick={download} disabled={acceptedCount === 0}>
                 Download .docx
@@ -479,7 +479,7 @@ export default function Home() {
           {tab !== 'cover-letter' && tab !== 'why-here' && (
             <div className="action-buttons full-width">
               <button className="btn-notion" onClick={applyToNotion} disabled={applying || acceptedCount === 0}>
-                {applying ? 'Applying...' : `Apply to Notion (${acceptedCount})`}
+                {applying ? 'Applying...' : `Apply resume edits to Notion (${acceptedCount})`}
               </button>
               <button className="btn-download" onClick={download} disabled={acceptedCount === 0}>
                 Download .docx
@@ -528,7 +528,7 @@ export default function Home() {
               </div>
             ))}
             <button className="btn-notion" onClick={applyCoherence} disabled={coherenceApplying || !Object.values(coherenceAccepted).some(Boolean)}>
-              {coherenceApplying ? 'Applying...' : 'Apply to Notion'}
+              {coherenceApplying ? 'Applying...' : 'Apply coherence pass to Notion'}
             </button>
             {coherenceApplied !== null && (
               <p className={coherenceApplied > 0 ? 'success' : 'error'}>
