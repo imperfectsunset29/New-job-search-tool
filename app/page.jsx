@@ -47,6 +47,7 @@ export default function Home() {
   const [neutralSaved, setNeutralSaved] = useState(false);
   const [neutralRestoring, setNeutralRestoring] = useState(false);
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+  const [showNeutralPreview, setShowNeutralPreview] = useState(false);
   const [coherenceSuggestions, setCoherenceSuggestions] = useState([]);
   const [coherenceBlocks, setCoherenceBlocks] = useState([]);
   const [coherenceLoading, setCoherenceLoading] = useState(false);
@@ -281,7 +282,16 @@ export default function Home() {
               <button className="btn-cancel" onClick={() => setShowRestoreConfirm(false)}>Cancel</button>
             </span>
           )}
+          <button className="btn-secondary" onClick={() => setShowNeutralPreview(p => !p)}>
+            {showNeutralPreview ? 'Hide neutral' : 'Preview current neutral'}
+          </button>
         </div>
+        {showNeutralPreview && (() => {
+          const stored = localStorage.getItem('neutralSnapshot');
+          if (!stored) return <p className="neutral-empty">No neutral snapshot saved yet.</p>;
+          const text = JSON.parse(stored).map(b => b.text).filter(Boolean).join('\n');
+          return <pre className="neutral-preview">{text}</pre>;
+        })()}
         {error && <p className="error">{error}</p>}
       </div>
 
