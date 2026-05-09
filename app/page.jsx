@@ -213,7 +213,7 @@ export default function Home() {
   async function runCoherencePass() {
     setCoherenceLoading(true);
     setCoherenceSuggestions([]);
-    setCoherenceDone(false);
+    setCoherenceApplied(null);
     setError('');
     const res = await fetch('/api/coherence', {
       method: 'POST',
