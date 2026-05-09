@@ -175,19 +175,31 @@ export default function Home() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pageUrl }),
     });
+    const data = await res.json();
     if (res.ok) {
+      localStorage.setItem('neutralSnapshot', JSON.stringify(data.blocks));
       setNeutralSaved(true);
       setTimeout(() => setNeutralSaved(false), 3000);
     } else {
-      const d = await res.json();
-      setError(d.error);
+      setError(data.error);
     }
     setNeutralSaving(false);
   }
 
   async function restoreNeutral() {
     setNeutralRestoring(true);
-    const res = await fetch('/api/restore-neutral', { method: 'POST' });
+    const stored = localStorage.getItem('neutralSnapshot');
+    if (!stored) {
+      setError('No neutral snapshot saved yet. Click "Save as neutral" first.');
+      setNeutralRestoring(false);
+      setShowRestoreConfirm(false);
+      return;
+    }
+    const res = await fetch('/api/restore-neutral', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blocks: JSON.parse(stored) }),
+    });
     if (!res.ok) {
       const d = await res.json();
       setError(d.error);
