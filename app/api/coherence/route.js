@@ -26,15 +26,19 @@ export async function POST(req) {
         role: 'user',
         content: `This resume has been edited piecemeal across many job applications and may have tonal inconsistencies — different registers, rhythms, or phrasings sitting next to each other.
 
-Each line below is a single Notion block, prefixed with its index number.
+Each line below is a single block, prefixed with its index number in square brackets.
 
 Rewrite it as a single unified voice. Preserve all facts, dates, titles, and metrics exactly. Do not add or remove content. Only reconcile tone and phrasing.
 
-For every block that needs changing, return a JSON object where "original" is the EXACT full text of that block (without the [index] prefix), and "suggested" is the rewrite.
+For every block that needs changing, return a JSON object with:
+- "blockIndex": the number from the [index] prefix
+- "original": the EXACT full text of that block (no prefix)
+- "suggested": your rewrite
+- "section": "coherence"
+- "type": "edit"
+- "reason": one sentence why
 
-Return a JSON array — only blocks that actually need changing:
-[{ "original": "<exact block text>", "suggested": "<rewritten text>", "section": "coherence", "type": "edit", "reason": "<one sentence why>" }]
-Return only the JSON array, no markdown.
+Return only a JSON array of changed blocks, no markdown.
 
 Resume blocks:
 ${numberedBlocks}`,
@@ -51,7 +55,7 @@ ${numberedBlocks}`,
       return NextResponse.json({ error: 'Failed to parse Claude response. Try again.' }, { status: 500 });
     }
 
-    return NextResponse.json({ suggestions, blocks });
+    return NextResponse.json({ suggestions, blocks: textBlocks });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

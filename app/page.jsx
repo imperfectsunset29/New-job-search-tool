@@ -235,7 +235,7 @@ export default function Home() {
     setCoherenceApplying(true);
     setCoherenceApplied(null);
     setError('');
-    const res = await fetch('/api/apply', {
+    const res = await fetch('/api/apply-coherence', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ blocks: coherenceBlocks, suggestions: coherenceSuggestions, accepted: coherenceAccepted }),
