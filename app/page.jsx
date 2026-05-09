@@ -323,14 +323,6 @@ export default function Home() {
                 Why here?
               </button>
             </div>
-            <div className="action-buttons">
-              <button className="btn-notion" onClick={applyToNotion} disabled={applying || acceptedCount === 0}>
-                {applying ? 'Applying...' : `Apply resume edits to Notion (${acceptedCount})`}
-              </button>
-              <button className="btn-download" onClick={download} disabled={acceptedCount === 0}>
-                Download .docx
-              </button>
-            </div>
           </div>
 
           {tab === 'changes' && suggestions.map((s, i) => (
