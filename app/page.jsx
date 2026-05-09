@@ -48,6 +48,7 @@ export default function Home() {
   const [neutralRestoring, setNeutralRestoring] = useState(false);
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
   const [showNeutralPreview, setShowNeutralPreview] = useState(false);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [coherenceSuggestions, setCoherenceSuggestions] = useState([]);
   const [coherenceBlocks, setCoherenceBlocks] = useState([]);
   const [coherenceLoading, setCoherenceLoading] = useState(false);
@@ -266,9 +267,20 @@ export default function Home() {
           {loading ? 'Analyzing...' : 'Analyze'}
         </button>
         <div className="baseline-actions">
-          <button className="btn-secondary" onClick={saveNeutral} disabled={neutralSaving || !pageUrl}>
-            {neutralSaving ? 'Saving...' : neutralSaved ? 'Saved ✓' : 'Save as neutral'}
-          </button>
+          {!showSaveConfirm ? (
+            <button className="btn-secondary" onClick={() => {
+              if (localStorage.getItem('neutralSnapshot')) setShowSaveConfirm(true);
+              else saveNeutral();
+            }} disabled={neutralSaving || !pageUrl}>
+              {neutralSaving ? 'Saving...' : neutralSaved ? 'Saved ✓' : 'Save as neutral'}
+            </button>
+          ) : (
+            <span className="restore-confirm">
+              This will overwrite your saved neutral.
+              <button className="btn-confirm" onClick={() => { setShowSaveConfirm(false); saveNeutral(); }}>Confirm</button>
+              <button className="btn-cancel" onClick={() => setShowSaveConfirm(false)}>Cancel</button>
+            </span>
+          )}
           {!showRestoreConfirm ? (
             <button className="btn-secondary btn-restore" onClick={() => setShowRestoreConfirm(true)} disabled={neutralRestoring || !pageUrl}>
               Restore to neutral
