@@ -1,6 +1,9 @@
-import { Redis } from '@upstash/redis';
+import { writeFileSync } from 'fs';
+import { join } from 'path';
 import { NextResponse } from 'next/server';
 import { extractPageId, fetchNotionBlocks } from '../../lib/notion';
+
+const SNAPSHOT_PATH = join(process.cwd(), '.neutral-snapshot.json');
 
 export async function POST(req) {
   try {
@@ -15,15 +18,7 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Could not read Notion page.' }, { status: 400 });
     }
 
-    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-      return NextResponse.json({ error: 'Redis is not configured. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to your environment.' }, { status: 503 });
-    }
-    const redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    });
-    await redis.set('neutral_snapshot', textBlocks);
-
+    writeFileSync(SNAPSHOT_PATH, JSON.stringify(textBlocks, null, 2));
     return NextResponse.json({ saved: true, blockCount: textBlocks.length });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
